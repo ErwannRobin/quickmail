@@ -1,0 +1,72 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "quickmail",
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2025-06-01",
+	"compatibility_flags": ["nodejs_compat", "enable_nodejs_http_modules"],
+	"workers_dev": true,
+
+	// Your Cloudflare account is picked up from `wrangler login`. If you belong
+	// to more than one account, set CLOUDFLARE_ACCOUNT_ID in your environment
+	// or uncomment this and paste the ID from the Cloudflare dashboard sidebar.
+	// "account_id": "",
+
+	// Deploys to <name>.<your-subdomain>.workers.dev out of the box. To serve it
+	// from your own domain instead, uncomment this and make sure the zone is on
+	// the same Cloudflare account.
+	// "routes": [
+	// 	{
+	// 		"pattern": "mail.example.com",
+	// 		"custom_domain": true
+	// 	}
+	// ],
+
+	"assets": {
+		"directory": ".svelte-kit/cloudflare",
+		"binding": "ASSETS"
+	},
+
+	// Prefer `bun run setup` (or `bash scripts/setup.sh`) over editing this by hand.
+	// Mail provider is selected by EMAIL_PROVIDER (resend | cloudflare).
+	// Resend secrets (when EMAIL_PROVIDER=resend or unset):
+	//   wrangler secret put RESEND_API_KEY
+	//   wrangler secret put RESEND_WEBHOOK_SECRET
+	// Cloudflare Email uses the send_email binding below plus CLOUDFLARE_MAIL_DOMAINS.
+	// Locally, put values in .dev.vars (copy .dev.vars.example).
+
+	"vars": {
+		"EMAIL_PROVIDER": "cloudflare",
+		// Dashboard form requires a non-empty value. Keep example.com for
+		// Resend; replace with your domain when EMAIL_PROVIDER=cloudflare.
+		"CLOUDFLARE_MAIL_DOMAINS": "voxal.app"
+	},
+
+	"send_email": [
+		{
+			"name": "EMAIL",
+			"remote": true
+		}
+	],
+
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "quickmail",
+			// `bun run setup` fills this in, or: wrangler d1 create <name>
+			"database_id": "98bd2f01-2435-49fe-b30b-d2a41640b6a9",
+			"migrations_dir": "migrations"
+		}
+	],
+
+	"r2_buckets": [
+		{
+			"binding": "ATTACHMENTS",
+			// `bun run setup` creates this, or: wrangler r2 bucket create <name>
+			"bucket_name": "quickmail-attachments","preview_bucket_name": "quickmail-attachments"
+		}
+	],
+
+	"observability": {
+		"enabled": true
+	}
+}
