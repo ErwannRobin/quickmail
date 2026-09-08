@@ -31,6 +31,10 @@ bash scripts/setup.sh
 The wizard creates the D1 database and R2 bucket, writes config, and onboards
 your domain. Budget about 30 minutes — most of that is waiting on DNS.
 
+Either way the schema takes care of itself: the Worker applies any pending
+migration in `migrations/` on its first request, so the empty D1 database the
+Deploy button provisions gets its tables before the first page renders.
+
 You need:
 
 1. A domain you control
@@ -303,7 +307,9 @@ scripts/
   setup.sh / setup.mjs         first-run wizard
   wrap-cloudflare-worker.mjs   attach email() after the SvelteKit build
 cli/                 quickinbox CLI + MCP server
-migrations/          D1 schema, applied in order
+migrations/          D1 schema, applied in order (the Worker applies any
+                     pending ones on the first request, so a database created
+                     by the Deploy button is not left empty)
 ```
 
 ## Troubleshooting
@@ -317,6 +323,7 @@ migrations/          D1 schema, applied in order
 | Webhook 500 | `bunx wrangler tail` |
 | Attachments missing | R2 bucket must exist and match `bucket_name` in `wrangler.jsonc` |
 | `database_id` errors on deploy | Paste the id from `wrangler d1 create` into `wrangler.jsonc` |
+| `no such table` after deploying | Load any page once — the Worker applies pending migrations itself. If it still fails, run `bun run db:migrate:remote` and check `bunx wrangler tail` |
 | Setup shows no Cloudflare domains | Set `CLOUDFLARE_MAIL_DOMAINS` and `EMAIL_PROVIDER=cloudflare`, restart the dev server |
 
 ## License
