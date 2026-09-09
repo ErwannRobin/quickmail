@@ -9,6 +9,7 @@ import {
 import { DOMAIN_COOKIE, UI_THEME_COOKIE, UI_THEME_COOKIE_MAX_AGE } from '$lib/server/constants';
 import { listAddressesForUser, listDomains } from '$lib/server/domains';
 import { getUserLocale } from '$lib/server/locale';
+import { ensureSchema } from '$lib/server/migrate';
 import { getUserUiTheme } from '$lib/server/ui-theme';
 import { BUILTIN_THEME_IDS, DEFAULT_UI_THEME, parseThemeId } from '$lib/ui-theme/ids';
 import {
@@ -70,6 +71,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		secureUrl.protocol = 'https:';
 		throw redirect(308, secureUrl.toString());
 	}
+
+	// A freshly provisioned D1 database (the "Deploy to Cloudflare" button
+	// creates one but never runs migrations) has no tables until this runs.
+	if (db) await ensureSchema(db);
 
 	event.locals.user = null;
 	event.locals.authMethod = null;
